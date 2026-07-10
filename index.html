@@ -656,7 +656,8 @@ window.addEventListener('scroll', () => {
 
 // Carrega da planilha, ou usa exemplo se ainda não configurada
 if(SHEET_CSV_URL.startsWith('http')){
-  Papa.parse(SHEET_CSV_URL, {
+  const freshUrl = SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + '_ts=' + Date.now();
+  Papa.parse(freshUrl, {
     download: true,
     header: true,
     skipEmptyLines: true,

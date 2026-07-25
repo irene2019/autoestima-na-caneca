@@ -453,6 +453,7 @@
 
   <div class="hero-ctas">
     <a class="btn-main" href="#produtos">Ver as canecas</a>
+    <a class="btn-main" href="#azulejos" style="background: var(--purple);">Ver os azulejos</a>
     <a class="btn-ghost" href="https://autoestimanacaneca.blogspot.com/" target="_blank" rel="noopener">Ler o blog</a>
   </div>
 
@@ -503,6 +504,19 @@
     </div>
     <div class="grid" id="productGrid"></div>
     <div class="grid-status" id="gridStatus"></div>
+  </div>
+</section>
+
+<!-- ================= AZULEJOS ================= -->
+<section class="products section" id="azulejos" style="background: var(--cream-soft);">
+  <div class="wrap">
+    <div id="featuredWrapAzulejos"></div>
+    <div class="section-head">
+      <h2>Azulejos Personalizados</h2>
+      <p>Mensagens de autoestima também em azulejo — perfeitos para decorar e lembrar do seu valor todos os dias.</p>
+    </div>
+    <div class="grid" id="productGridAzulejos"></div>
+    <div class="grid-status" id="gridStatusAzulejos"></div>
   </div>
 </section>
 
@@ -599,13 +613,16 @@ setInterval(() => {
 }, 4000);
 
 /* ============ PRODUCTS: GOOGLE SHEETS + INFINITE SCROLL ============ */
-// 1) Crie uma planilha Google Sheets com as colunas: nome | preco | imagem | whatsapp (opcional)
+// 1) Na planilha Google Sheets, use as colunas: nome | preco | imagem | categoria | whatsapp (opcional)
+//    Na coluna "categoria", escreva "caneca" ou "azulejo" em cada linha.
+//    Linhas sem essa coluna preenchida são tratadas como "caneca" (compatibilidade com o que já existia).
 // 2) Arquivo > Compartilhar > Publicar na web > formato CSV
 // 3) Cole o link publicado abaixo, no lugar de SHEET_CSV_URL
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRiAzPwQf9LdL_ZC1kgVMNiJuUcehJXZOdW5oBk3vwThbvlG-yW2rpjQSueSAH_fCZHa869ZNW5ugkM/pub?output=csv";
 
 const DEFAULT_WPP = "5554984127018";
 const DEFAULT_MSG = "Ol\u00e1! \ud83d\ude0a Vim pelo site Autoestima na Caneca. Gostei da caneca";
+const BATCH = 6;
 
 // Garante que caminhos relativos (ex: "imagens/001.png") funcionem
 // independente de como a URL do GitHub Pages foi acessada (com ou sem barra final).
@@ -619,23 +636,6 @@ function resolveImagePath(raw){
   return BASE_PATH + raw.replace(/^\//, '');
 }
 
-const grid = document.getElementById('productGrid');
-const status = document.getElementById('gridStatus');
-
-// Dados de exemplo (aparecem enquanto a planilha real não está conectada)
-const fallbackProducts = [
-  { nome: "Caneca Eu Sou Suficiente", preco: "R$ 39,90", imagem: "" },
-  { nome: "Caneca Flor que Floresce", preco: "R$ 39,90", imagem: "" },
-  { nome: "Caneca Dias Melhores", preco: "R$ 39,90", imagem: "" },
-  { nome: "Caneca Amor Próprio", preco: "R$ 39,90", imagem: "" },
-  { nome: "Caneca Recomeços", preco: "R$ 39,90", imagem: "" },
-  { nome: "Caneca Força Interior", preco: "R$ 39,90", imagem: "" }
-];
-
-let allProducts = [];
-let shown = 0;
-const BATCH = 6;
-
 function placeholderSVG(text){
   const clean = (text || "Autoestima na Caneca").replace(/&/g,'&amp;').replace(/</g,'&lt;');
   return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><rect width='400' height='400' fill='%23f6d9e6'/><text x='50%25' y='50%25' font-family='Georgia' font-size='22' fill='%235c2461' text-anchor='middle' dominant-baseline='middle'>${clean}</text></svg>`;
@@ -647,86 +647,140 @@ function buildWppLink(prod){
   return `https://wa.me/${DEFAULT_WPP}?text=${msg}`;
 }
 
-function renderCard(prod){
-  const card = document.createElement('div');
-  card.className = 'card';
-  const img = prod.imagem && prod.imagem.trim() ? resolveImagePath(prod.imagem.trim()) : placeholderSVG(prod.nome);
+// Dados de exemplo (aparecem enquanto a planilha real não está conectada)
+const fallbackProducts = {
+  caneca: [
+    { nome: "Caneca Eu Sou Suficiente", preco: "R$ 39,90", imagem: "" },
+    { nome: "Caneca Flor que Floresce", preco: "R$ 39,90", imagem: "" },
+    { nome: "Caneca Dias Melhores", preco: "R$ 39,90", imagem: "" },
+    { nome: "Caneca Amor Próprio", preco: "R$ 39,90", imagem: "" },
+    { nome: "Caneca Recomeços", preco: "R$ 39,90", imagem: "" },
+    { nome: "Caneca Força Interior", preco: "R$ 39,90", imagem: "" }
+  ],
+  azulejo: [
+    { nome: "Azulejo Flor de Lótus", preco: "R$ 34,90", imagem: "" },
+    { nome: "Azulejo Eu Sou Capaz", preco: "R$ 34,90", imagem: "" },
+    { nome: "Azulejo Dias Melhores", preco: "R$ 34,90", imagem: "" }
+  ]
+};
 
-  card.innerHTML = `
-    <div class="card-img" data-full="${img}" data-caption="${prod.nome || ''}">
-      <img src="${img}" alt="${prod.nome || 'Caneca personalizada'}" loading="lazy">
-      <span class="zoom-hint">🔍</span>
-    </div>
-    <div class="card-body">
-      <h3>${prod.nome || 'Caneca personalizada'}</h3>
-      <div class="card-price">${prod.preco || ''}</div>
-      <a class="card-cta" target="_blank" rel="noopener" href="${buildWppLink(prod)}">
-        <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
-        Comprar pelo WhatsApp
-      </a>
-    </div>
-  `;
-  grid.appendChild(card);
-}
+// Cria uma seção independente com scroll infinito próprio (usada para canecas e azulejos)
+function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, itemName }){
+  const grid = document.getElementById(gridId);
+  const status = document.getElementById(statusId);
+  const section = sectionId ? document.getElementById(sectionId) : null;
+  let allProducts = [];
+  let shown = 0;
+  let observer = null;
+  let sentinel = null;
 
-function renderFeatured(prod){
-  const wrap = document.getElementById('featuredWrap');
-  if(!prod){ wrap.innerHTML = ''; return; }
-  const img = prod.imagem ? resolveImagePath(prod.imagem) : placeholderSVG(prod.nome);
-  wrap.innerHTML = `
-    <div class="featured-card" style="position:relative;">
-      <span class="featured-badge">✨ Novidade</span>
-      <div class="featured-img-wrap card-img" data-full="${img}" data-caption="${prod.nome || ''}">
-        <img src="${img}" alt="${prod.nome || 'Caneca personalizada'}">
+  function renderCard(prod){
+    const card = document.createElement('div');
+    card.className = 'card';
+    const img = prod.imagem && prod.imagem.trim() ? resolveImagePath(prod.imagem.trim()) : placeholderSVG(prod.nome);
+
+    card.innerHTML = `
+      <div class="card-img" data-full="${img}" data-caption="${prod.nome || ''}">
+        <img src="${img}" alt="${prod.nome || itemName}" loading="lazy">
+        <span class="zoom-hint">🔍</span>
       </div>
-      <div class="featured-body">
-        <h3>${prod.nome || 'Caneca personalizada'}</h3>
-        <div class="featured-price">${prod.preco || ''}</div>
-        <a class="featured-cta" target="_blank" rel="noopener" href="${buildWppLink(prod)}">
-          <svg viewBox="0 0 32 32" fill="currentColor" width="18" height="18"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
+      <div class="card-body">
+        <h3>${prod.nome || itemName}</h3>
+        <div class="card-price">${prod.preco || ''}</div>
+        <a class="card-cta" target="_blank" rel="noopener" href="${buildWppLink(prod)}">
+          <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
           Comprar pelo WhatsApp
         </a>
       </div>
-    </div>
-  `;
+    `;
+    grid.appendChild(card);
+  }
+
+  function renderFeatured(prod){
+    if(!featuredWrapId) return;
+    const wrap = document.getElementById(featuredWrapId);
+    if(!wrap) return;
+    if(!prod){ wrap.innerHTML = ''; return; }
+    const img = prod.imagem ? resolveImagePath(prod.imagem) : placeholderSVG(prod.nome);
+    wrap.innerHTML = `
+      <div class="featured-card" style="position:relative;">
+        <span class="featured-badge">✨ Novidade</span>
+        <div class="featured-img-wrap card-img" data-full="${img}" data-caption="${prod.nome || ''}">
+          <img src="${img}" alt="${prod.nome || itemName}">
+        </div>
+        <div class="featured-body">
+          <h3>${prod.nome || itemName}</h3>
+          <div class="featured-price">${prod.preco || ''}</div>
+          <a class="featured-cta" target="_blank" rel="noopener" href="${buildWppLink(prod)}">
+            <svg viewBox="0 0 32 32" fill="currentColor" width="18" height="18"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
+            Comprar pelo WhatsApp
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  function loadNextBatch(){
+    const next = allProducts.slice(shown, shown + BATCH);
+    next.forEach(renderCard);
+    shown += next.length;
+
+    if(shown >= allProducts.length){
+      status.innerHTML = 'Veja mais no <a href="https://www.instagram.com/r.ipersonalizados" target="_blank" rel="noopener" style="color:var(--purple); font-weight:700; text-decoration:underline;">Instagram</a> 💜';
+      if(observer) observer.disconnect();
+    } else {
+      status.innerHTML = '<div class="spinner"></div>Carregando mais...';
+    }
+  }
+
+  function setupObserver(){
+    if(observer) observer.disconnect();
+    if(!sentinel){
+      sentinel = document.createElement('div');
+      sentinel.style.height = '1px';
+      grid.insertAdjacentElement('afterend', sentinel);
+    }
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if(entry.isIntersecting && shown < allProducts.length){
+          loadNextBatch();
+        }
+      });
+    }, { rootMargin: '400px' });
+    observer.observe(sentinel);
+  }
+
+  function init(list){
+    if(section){
+      if(!list.length){ section.style.display = 'none'; return; }
+      section.style.display = '';
+    }
+    if(list.length > 1){
+      const featured = list[list.length - 1];
+      allProducts = list.slice(0, -1).reverse();
+      renderFeatured(featured);
+    } else {
+      allProducts = list;
+      renderFeatured(null);
+    }
+    shown = 0;
+    grid.innerHTML = '';
+    status.textContent = '';
+    loadNextBatch();
+    setupObserver();
+  }
+
+  return { init };
 }
 
-function loadNextBatch(){
-  const next = allProducts.slice(shown, shown + BATCH);
-  next.forEach(renderCard);
-  shown += next.length;
+const canecasSection = createInfiniteSection({
+  gridId: 'productGrid', statusId: 'gridStatus', featuredWrapId: 'featuredWrap',
+  itemName: 'Caneca personalizada'
+});
 
-  if(shown >= allProducts.length){
-    status.innerHTML = 'Veja mais no <a href="https://www.instagram.com/r.ipersonalizados" target="_blank" rel="noopener" style="color:var(--purple); font-weight:700; text-decoration:underline;">Instagram</a> 💜';
-  } else {
-    status.innerHTML = '<div class="spinner"></div>Carregando mais canecas...';
-  }
-}
-
-function initProducts(list){
-  if(list.length > 1){
-    const featured = list[list.length - 1];
-    allProducts = list.slice(0, -1).reverse();
-    renderFeatured(featured);
-  } else {
-    allProducts = list;
-    renderFeatured(null);
-  }
-  shown = 0;
-  grid.innerHTML = '';
-  status.textContent = '';
-  loadNextBatch();
-}
-
-// Scroll infinito
-let loading = false;
-window.addEventListener('scroll', () => {
-  if(loading || shown >= allProducts.length) return;
-  const scrollBottom = window.innerHeight + window.scrollY;
-  if(scrollBottom >= document.body.offsetHeight - 400){
-    loading = true;
-    setTimeout(() => { loadNextBatch(); loading = false; }, 300);
-  }
+const azulejosSection = createInfiniteSection({
+  gridId: 'productGridAzulejos', statusId: 'gridStatusAzulejos', featuredWrapId: 'featuredWrapAzulejos',
+  sectionId: 'azulejos', itemName: 'Azulejo personalizado'
 });
 
 // Carrega da planilha, ou usa exemplo se ainda não configurada
@@ -742,14 +796,22 @@ if(SHEET_CSV_URL.startsWith('http')){
         nome: (r.nome || '').trim(),
         preco: (r.preco || r['preço'] || '').trim(),
         imagem: (r.imagem || '').trim(),
+        categoria: (r.categoria || 'caneca').trim().toLowerCase(),
         whatsapp: (r.whatsapp || '').trim()
       }));
-      initProducts(rows.length ? rows : fallbackProducts);
+      const canecaRows = rows.filter(r => r.categoria !== 'azulejo');
+      const azulejoRows = rows.filter(r => r.categoria === 'azulejo');
+      canecasSection.init(canecaRows.length ? canecaRows : fallbackProducts.caneca);
+      azulejosSection.init(azulejoRows.length ? azulejoRows : (rows.length ? [] : fallbackProducts.azulejo));
     },
-    error: () => { initProducts(fallbackProducts); }
+    error: () => {
+      canecasSection.init(fallbackProducts.caneca);
+      azulejosSection.init(fallbackProducts.azulejo);
+    }
   });
 } else {
-  initProducts(fallbackProducts);
+  canecasSection.init(fallbackProducts.caneca);
+  azulejosSection.init(fallbackProducts.azulejo);
 }
 
 /* ============ LIGHTBOX ============ */

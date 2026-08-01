@@ -420,6 +420,88 @@
     0%,100%{ box-shadow: 0 14px 28px -10px rgba(0,0,0,0.4), 0 0 0 0 rgba(37,211,102,0.5); }
     50%{ box-shadow: 0 14px 28px -10px rgba(0,0,0,0.4), 0 0 0 12px rgba(37,211,102,0); }
   }
+
+  /* ---------- CART ---------- */
+  .cart-fab{
+    position:fixed; bottom:22px; left:22px; z-index:60;
+    width:58px; height:58px; border-radius:50%;
+    background: var(--purple-deep); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 14px 28px -10px rgba(0,0,0,0.4);
+  }
+  .cart-fab svg{ width:26px; height:26px; }
+  .cart-badge{
+    position:absolute; top:-4px; right:-4px;
+    background: var(--purple); color:#fff;
+    min-width:22px; height:22px; border-radius:999px;
+    font-size:0.72rem; font-weight:700;
+    display:none; align-items:center; justify-content:center;
+    padding:0 5px; border:2px solid var(--cream-soft);
+  }
+  .add-cart-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    background: transparent; color: var(--purple-deep);
+    border: 1.5px solid var(--purple); border-radius: 12px;
+    padding: 9px 14px; font-weight:700; font-size:0.82rem;
+    margin-top:6px; transition: background .15s ease;
+  }
+  .add-cart-btn:hover{ background: var(--blush); }
+  .featured-body .add-cart-btn{ border-color: rgba(255,255,255,0.6); color:#fff; }
+  .featured-body .add-cart-btn:hover{ background: rgba(255,255,255,0.15); }
+
+  .cart-overlay{
+    position:fixed; inset:0; z-index:90;
+    background: rgba(58,36,64,0.5);
+    opacity:0; pointer-events:none; transition: opacity .25s ease;
+  }
+  .cart-overlay.open{ opacity:1; pointer-events:auto; }
+  .cart-drawer{
+    position:fixed; top:0; right:0; height:100%; width: min(400px, 92vw);
+    background: var(--cream-soft); z-index:95;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.2);
+    transform: translateX(100%); transition: transform .3s ease;
+    display:flex; flex-direction:column;
+  }
+  .cart-drawer.open{ transform: translateX(0); }
+  .cart-header{
+    padding: 22px 22px 16px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom: 1px solid rgba(153,63,159,0.15);
+  }
+  .cart-header h3{ font-size:1.4rem; }
+  .cart-close{
+    width:36px; height:36px; border-radius:50%; background: var(--blush); color: var(--purple-deep);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+  }
+  .cart-items{ flex:1; overflow-y:auto; padding: 16px 22px; }
+  .cart-item{
+    display:flex; gap:12px; align-items:center; padding: 14px 0;
+    border-bottom: 1px solid rgba(153,63,159,0.1);
+  }
+  .cart-item img{ width:64px; height:64px; border-radius:10px; object-fit:cover; background: var(--blush); flex-shrink:0; }
+  .cart-item-info{ flex:1; min-width:0; }
+  .cart-item-info h4{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:0.92rem; color: var(--ink); margin-bottom:2px; }
+  .cart-item-price{ color: var(--purple); font-weight:700; font-size:0.88rem; margin-bottom:6px; }
+  .cart-qty{ display:flex; align-items:center; gap:10px; }
+  .qty-btn{
+    width:26px; height:26px; border-radius:50%; background: var(--blush); color: var(--purple-deep);
+    font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .cart-remove{ color: var(--ink-soft); font-size:1rem; padding:6px; flex-shrink:0; }
+  .cart-remove:hover{ color: var(--purple); }
+  .cart-footer{ padding: 18px 22px 24px; border-top: 1px solid rgba(153,63,159,0.15); }
+  #cartTotal{ font-family:'Cormorant Garamond',serif; font-size:1.3rem; color: var(--purple-deep); font-weight:600; margin-bottom:14px; text-align:right; }
+  #cartCheckoutBtn{
+    width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    background:#25D366; color:#fff; padding:14px; border-radius:14px; font-weight:700;
+  }
+  .cart-toast{
+    position:fixed; bottom:90px; left:22px; z-index:96;
+    background: var(--purple-deep); color:#fff;
+    padding:12px 18px; border-radius:12px; font-size:0.88rem; font-weight:600;
+    box-shadow: var(--shadow);
+    opacity:0; transform: translateY(10px); transition: all .3s ease; pointer-events:none;
+  }
+  .cart-toast.show{ opacity:1; transform:none; }
 </style>
 </head>
 <body>
@@ -589,6 +671,30 @@
   <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Zm7.6 18.6c-.32.9-1.6 1.65-2.6 1.86-.7.14-1.6.25-4.66-1-3.9-1.6-6.4-5.55-6.6-5.8-.19-.26-1.57-2.09-1.57-4 0-1.9.98-2.83 1.34-3.2.36-.4.79-.5 1.05-.5.26 0 .53.003.76.014.24.01.57-.09.9.68.32.78 1.1 2.68 1.2 2.87.1.2.16.42.03.68-.13.26-.2.42-.4.65-.2.23-.42.51-.6.68-.2.19-.4.4-.18.78.23.4 1 1.66 2.16 2.69 1.48 1.32 2.73 1.73 3.13 1.93.4.19.63.16.86-.1.24-.26 1-1.16 1.27-1.56.26-.4.53-.33.9-.2.36.13 2.27 1.07 2.66 1.27.4.2.66.3.76.46.1.17.1.98-.22 1.87Z"/></svg>
 </a>
 
+<button class="cart-fab" id="cartFab" aria-label="Ver carrinho">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h3>Seu carrinho 🛍️</h3>
+    <button class="cart-close" id="cartClose" aria-label="Fechar carrinho">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div id="cartTotal"></div>
+    <button id="cartCheckoutBtn">
+      <svg viewBox="0 0 32 32" fill="currentColor" width="18" height="18"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
+      Finalizar pedido no WhatsApp
+    </button>
+  </div>
+</div>
+
+<div class="cart-toast" id="cartToast">Adicionado ao carrinho! 🛒</div>
+
+
 <script>
 document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -665,7 +771,7 @@ const fallbackProducts = {
 };
 
 // Cria uma seção independente com scroll infinito próprio (usada para canecas e azulejos)
-function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, itemName }){
+function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, itemName, categoria }){
   const grid = document.getElementById(gridId);
   const status = document.getElementById(statusId);
   const section = sectionId ? document.getElementById(sectionId) : null;
@@ -673,6 +779,21 @@ function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, it
   let shown = 0;
   let observer = null;
   let sentinel = null;
+
+  function escapeAttr(str){
+    return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+
+  function addCartButtonHTML(prod){
+    return `<button class="add-cart-btn"
+        data-nome="${escapeAttr(prod.nome)}"
+        data-preco="${escapeAttr(prod.preco)}"
+        data-imagem="${escapeAttr(prod.imagem)}"
+        data-categoria="${categoria}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Adicionar ao carrinho
+      </button>`;
+  }
 
   function renderCard(prod){
     const card = document.createElement('div');
@@ -691,6 +812,7 @@ function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, it
           <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
           Comprar pelo WhatsApp
         </a>
+        ${addCartButtonHTML(prod)}
       </div>
     `;
     grid.appendChild(card);
@@ -715,6 +837,7 @@ function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, it
             <svg viewBox="0 0 32 32" fill="currentColor" width="18" height="18"><path d="M16.01 2.9C8.76 2.9 2.87 8.79 2.87 16.04c0 2.5.7 4.83 1.9 6.83L2.9 29.1l6.4-1.83c1.92 1.05 4.14 1.65 6.7 1.65 7.25 0 13.14-5.89 13.14-13.14S23.26 2.9 16.01 2.9Z"/></svg>
             Comprar pelo WhatsApp
           </a>
+          ${addCartButtonHTML(prod)}
         </div>
       </div>
     `;
@@ -775,12 +898,12 @@ function createInfiniteSection({ gridId, statusId, featuredWrapId, sectionId, it
 
 const canecasSection = createInfiniteSection({
   gridId: 'productGrid', statusId: 'gridStatus', featuredWrapId: 'featuredWrap',
-  itemName: 'Caneca personalizada'
+  itemName: 'Caneca personalizada', categoria: 'caneca'
 });
 
 const azulejosSection = createInfiniteSection({
   gridId: 'productGridAzulejos', statusId: 'gridStatusAzulejos', featuredWrapId: 'featuredWrapAzulejos',
-  sectionId: 'azulejos', itemName: 'Azulejo personalizado'
+  sectionId: 'azulejos', itemName: 'Azulejo personalizado', categoria: 'azulejo'
 });
 
 // Carrega da planilha, ou usa exemplo se ainda não configurada
@@ -831,6 +954,164 @@ function closeLightbox(){ lightbox.classList.remove('open'); }
 document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
 lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
 document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLightbox(); });
+
+/* ============ CARRINHO DE COMPRAS ============ */
+const CART_KEY = 'aec_cart_v1';
+
+function parsePrice(str){
+  if(!str) return 0;
+  const clean = String(str).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3},)/g, '').replace(',', '.');
+  const num = parseFloat(clean);
+  return isNaN(num) ? 0 : num;
+}
+
+function formatPrice(num){
+  return 'R$ ' + num.toFixed(2).replace('.', ',');
+}
+
+function getCart(){
+  try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+  catch(e){ return []; }
+}
+
+function saveCart(cart){
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  updateCartUI();
+}
+
+function addToCart({ nome, preco, imagem, categoria }){
+  if(!nome) return;
+  const cart = getCart();
+  const id = categoria + '::' + nome;
+  const existing = cart.find(i => i.id === id);
+  if(existing){
+    existing.qty += 1;
+  } else {
+    cart.push({ id, nome, preco, precoNum: parsePrice(preco), imagem, categoria, qty: 1 });
+  }
+  saveCart(cart);
+  showToast();
+}
+
+function removeFromCart(id){
+  saveCart(getCart().filter(i => i.id !== id));
+}
+
+function changeQty(id, delta){
+  const cart = getCart();
+  const item = cart.find(i => i.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0){ return removeFromCart(id); }
+  saveCart(cart);
+}
+
+function cartTotal(cart){
+  return cart.reduce((sum, i) => sum + (i.precoNum * i.qty), 0);
+}
+
+function renderCartItems(cart){
+  const list = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('cartCheckoutBtn');
+
+  if(!cart.length){
+    list.innerHTML = '<p style="text-align:center;color:var(--ink-soft);padding:40px 10px;">Seu carrinho está vazio.<br>Adicione canecas ou azulejos para começar! 💜</p>';
+    totalEl.textContent = '';
+    checkoutBtn.style.display = 'none';
+    return;
+  }
+
+  checkoutBtn.style.display = 'flex';
+  list.innerHTML = cart.map(item => {
+    const img = item.imagem ? resolveImagePath(item.imagem) : placeholderSVG(item.nome);
+    return `
+      <div class="cart-item">
+        <img src="${img}" alt="${item.nome}">
+        <div class="cart-item-info">
+          <h4>${item.nome}</h4>
+          <div class="cart-item-price">${item.preco || formatPrice(item.precoNum)}</div>
+          <div class="cart-qty">
+            <button class="qty-btn" data-id="${item.id}" data-delta="-1">−</button>
+            <span>${item.qty}</span>
+            <button class="qty-btn" data-id="${item.id}" data-delta="1">+</button>
+          </div>
+        </div>
+        <button class="cart-remove" data-id="${item.id}" aria-label="Remover">✕</button>
+      </div>
+    `;
+  }).join('');
+  totalEl.textContent = 'Total: ' + formatPrice(cartTotal(cart));
+}
+
+function updateCartUI(){
+  const cart = getCart();
+  const badge = document.getElementById('cartBadge');
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
+  renderCartItems(cart);
+}
+
+function openCart(){
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+}
+
+function closeCart(){
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+}
+
+let toastTimeout;
+function showToast(){
+  const toast = document.getElementById('cartToast');
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function checkoutWhatsApp(){
+  const cart = getCart();
+  if(!cart.length) return;
+  let msg = 'Olá! 😊 Vim pelo site Autoestima na Caneca e gostaria de fazer o seguinte pedido:\n\n';
+  cart.forEach(item => {
+    msg += `• ${item.qty}x ${item.nome} — ${item.preco || formatPrice(item.precoNum)}\n`;
+  });
+  msg += `\nTotal: ${formatPrice(cartTotal(cart))}\n\nPode me confirmar a disponibilidade e o prazo de entrega/retirada? 💜`;
+  window.open(`https://wa.me/${DEFAULT_WPP}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+document.addEventListener('click', (e) => {
+  const addBtn = e.target.closest('.add-cart-btn');
+  if(addBtn){
+    addToCart({
+      nome: addBtn.dataset.nome,
+      preco: addBtn.dataset.preco,
+      imagem: addBtn.dataset.imagem,
+      categoria: addBtn.dataset.categoria
+    });
+    return;
+  }
+  const qtyBtn = e.target.closest('.qty-btn');
+  if(qtyBtn){
+    changeQty(qtyBtn.dataset.id, parseInt(qtyBtn.dataset.delta, 10));
+    return;
+  }
+  const removeBtn = e.target.closest('.cart-remove');
+  if(removeBtn){
+    removeFromCart(removeBtn.dataset.id);
+    return;
+  }
+  if(e.target.closest('#cartFab')){ openCart(); return; }
+  if(e.target.closest('#cartClose')){ closeCart(); return; }
+  if(e.target.id === 'cartOverlay'){ closeCart(); return; }
+  if(e.target.closest('#cartCheckoutBtn')){ checkoutWhatsApp(); return; }
+});
+
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeCart(); });
+
+updateCartUI();
 </script>
 
 </body>
